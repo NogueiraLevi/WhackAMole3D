@@ -3,35 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-/// <summary>
-/// Randomly shows one of the character instances already placed in the Game scene.
-/// This keeps the current scene positions and models created by the team.
-/// </summary>
 public class MoleRandomizer : MonoBehaviour
 {
     [Header("Bichos já posicionados na cena")]
-    [Tooltip("Arraste aqui os cinco objetos Ghost_kid da cena Assets/Scenes/Game.unity.")]
     [SerializeField] private GameObject[] moles = new GameObject[0];
 
     [Header("Tempos de aparição")]
-    [Tooltip("Tempo mínimo de espera antes de aparecer o próximo bicho, em segundos.")]
-    [SerializeField, Min(0f)] private float minDelayBeforeNextMole = 0.35f;
+    [SerializeField, Min(0f)]
+    private float minDelayBeforeNextMole = 0.35f;
 
-    [Tooltip("Tempo máximo de espera antes de aparecer o próximo bicho, em segundos.")]
-    [SerializeField, Min(0f)] private float maxDelayBeforeNextMole = 0.9f;
+    [SerializeField, Min(0f)]
+    private float maxDelayBeforeNextMole = 0.9f;
 
-    [Tooltip("Quanto tempo o bicho fica disponível antes de desaparecer, em segundos.")]
-    [SerializeField, Min(0.1f)] private float visibleDuration = 1.25f;
+    [SerializeField, Min(0.1f)]
+    private float visibleDuration = 1.25f;
+
+    [Header("Janela de clique atrasado")]
+    [SerializeField, Min(0.1f)]
+    private float lateClickWindow = 0.6f;
 
     [Header("Comportamento")]
-    [Tooltip("Evita escolher o mesmo bicho duas vezes seguidas, quando houver mais de um válido.")]
     [SerializeField] private bool avoidSameMoleTwiceInARow = true;
-
-    [Tooltip("Inicia o sorteio automaticamente quando a cena Game começa.")]
     [SerializeField] private bool startAutomatically = true;
 
     [Header("Integração com pontuação")]
-    [Tooltip("Evento disparado quando TryRegisterHit confirma um acerto. Pode ser conectado à pontuação no Inspector.")]
     [SerializeField] private UnityEvent onMoleHit = new UnityEvent();
 
     private Coroutine spawnRoutine;
@@ -39,9 +34,9 @@ public class MoleRandomizer : MonoBehaviour
     private int previousMoleIndex = -1;
     private bool currentMoleWasHit;
 
-    /// <summary>The currently visible character, or null when none is visible.</summary>
-    public GameObject CurrentMole => currentMole;
+    private Renderer[] currentRenderers;
 
+    public GameObject CurrentMole => currentMole;
     public bool IsRunning => spawnRoutine != null;
 
     private void Awake()
@@ -83,19 +78,18 @@ public class MoleRandomizer : MonoBehaviour
         HideAllMoles();
     }
 
-    /// <summary>
-    /// Call this from the hammer/raycast code. Returns true only when the hit
-    /// belongs to the character that is currently visible.
-    /// </summary>
     public bool TryRegisterHit(Collider hitCollider)
     {
-        return hitCollider != null && TryRegisterHit(hitCollider.gameObject);
+        return hitCollider != null &&
+               TryRegisterHit(hitCollider.gameObject);
     }
 
-    /// <summary>GameObject overload for callers that do not have a Collider reference.</summary>
     public bool TryRegisterHit(GameObject hitObject)
     {
-        if (hitObject == null || currentMole == null || currentMoleWasHit || !currentMole.activeInHierarchy)
+        if (hitObject == null ||
+            currentMole == null ||
+            currentMoleWasHit ||
+            !currentMole.activeInHierarchy)
         {
             return false;
         }
@@ -103,8 +97,15 @@ public class MoleRandomizer : MonoBehaviour
         Transform hitTransform = hitObject.transform;
         Transform currentTransform = currentMole.transform;
 
-        // The collider may be on a child object inside the character prefab.
-        if (hitTransform != currentTransform && !hitTransform.IsChildOf(currentTransform))
+        if (hitTransform != currentTransform &&
+            !hitTransform.IsChildOf(currentTransform))
+        {
+            return false;
+        }
+
+        GhostTarget target = currentMole.GetComponent<GhostTarget>();
+
+        if (target != null && !target.TryHit())
         {
             return false;
         }
@@ -112,6 +113,7 @@ public class MoleRandomizer : MonoBehaviour
         currentMoleWasHit = true;
         currentMole.SetActive(false);
         onMoleHit?.Invoke();
+
         return true;
     }
 
@@ -121,24 +123,23 @@ public class MoleRandomizer : MonoBehaviour
         {
             float minDelay = Mathf.Max(0f, minDelayBeforeNextMole);
             float maxDelay = Mathf.Max(minDelay, maxDelayBeforeNextMole);
-            float delay = Random.Range(minDelay, maxDelay);
 
-            if (delay > 0f)
-            {
-                yield return new WaitForSeconds(delay);
-            }
+            yield return new WaitForSeconds(Random.Range(minDelay, maxDelay));
 
             int selectedIndex = ChooseNextMoleIndex();
+
             if (selectedIndex < 0)
             {
                 Debug.LogError(
-                    "MoleRandomizer: nenhum bicho foi atribuído. Adicione os objetos Ghost_kid no array Moles do Inspector.",
+                    "MoleRandomizer: nenhum bicho foi atribuído.",
                     this);
+
                 spawnRoutine = null;
                 yield break;
             }
 
             GameObject selectedMole = moles[selectedIndex];
+
             if (selectedMole == null)
             {
                 continue;
@@ -146,6 +147,11 @@ public class MoleRandomizer : MonoBehaviour
 
             currentMole = selectedMole;
             currentMoleWasHit = false;
+
+            currentRenderers =
+                selectedMole.GetComponentsInChildren<Renderer>(true);
+
+            SetVisualsVisible(true);
             selectedMole.SetActive(true);
 
             float elapsed = 0f;
@@ -157,6 +163,30 @@ public class MoleRandomizer : MonoBehaviour
                 yield return null;
             }
 
+            // Se o jogador acertou, o fantasma já foi desativado.
+            if (currentMoleWasHit)
+            {
+                currentMole = null;
+                previousMoleIndex = selectedIndex;
+                continue;
+            }
+
+            // O tempo acabou: o fantasma escapou.
+            GhostTarget ghostTarget =
+                selectedMole.GetComponent<GhostTarget>();
+
+            if (ghostTarget != null)
+            {
+                ghostTarget.MarkEscaped();
+            }
+
+            // Esconde apenas o visual, mantendo o objeto e o colisor ativos.
+            SetVisualsVisible(false);
+
+            // Dá tempo para reconhecer um clique atrasado.
+            yield return new WaitForSeconds(
+                Mathf.Max(0.1f, lateClickWindow));
+
             if (selectedMole != null)
             {
                 selectedMole.SetActive(false);
@@ -164,6 +194,22 @@ public class MoleRandomizer : MonoBehaviour
 
             currentMole = null;
             previousMoleIndex = selectedIndex;
+        }
+    }
+
+    private void SetVisualsVisible(bool visible)
+    {
+        if (currentRenderers == null)
+        {
+            return;
+        }
+
+        foreach (Renderer visual in currentRenderers)
+        {
+            if (visual != null)
+            {
+                visual.enabled = visible;
+            }
         }
     }
 
@@ -216,7 +262,9 @@ public class MoleRandomizer : MonoBehaviour
     private void OnValidate()
     {
         minDelayBeforeNextMole = Mathf.Max(0f, minDelayBeforeNextMole);
-        maxDelayBeforeNextMole = Mathf.Max(minDelayBeforeNextMole, maxDelayBeforeNextMole);
+        maxDelayBeforeNextMole =
+            Mathf.Max(minDelayBeforeNextMole, maxDelayBeforeNextMole);
         visibleDuration = Mathf.Max(0.1f, visibleDuration);
+        lateClickWindow = Mathf.Max(0.1f, lateClickWindow);
     }
 }
