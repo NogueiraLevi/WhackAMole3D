@@ -6,86 +6,57 @@ public class HammerInput : MonoBehaviour
 {
     [SerializeField] private Camera playerCamera;
     [SerializeField] private HitManager hitManager;
+    [SerializeField] private MoleRandomizer moleRandomizer;
+
+    private void Awake()
+    {
+        if (moleRandomizer == null)
+            moleRandomizer = FindFirstObjectByType<MoleRandomizer>();
+    }
 
     private void Update()
     {
-        if (Mouse.current != null &&
-            Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            // Ignora cliques sobre a interface (UI).
-            if (EventSystem.current != null &&
-                EventSystem.current.IsPointerOverGameObject())
-            {
-                return;
-            }
+        if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame)
+            return;
 
-            DetectHit();
-        }
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        DetectHit();
     }
-
 
     private void DetectHit()
     {
         if (playerCamera == null)
         {
-            Debug.LogWarning(
-                "HammerInput: nenhuma câmera foi configurada."
-            );
+            Debug.LogWarning("HammerInput: câmera não configurada.", this);
             return;
         }
 
-        Vector2 mousePosition =
-            Mouse.current.position.ReadValue();
-
-        Ray ray =
-            playerCamera.ScreenPointToRay(mousePosition);
-
+        Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            Debug.Log("Raycast atingiu: " + hit.collider.name);
-            
-            GhostTarget ghost =
-                hit.collider.GetComponentInParent<GhostTarget>();
-
+            GhostTarget ghost = hit.collider.GetComponentInParent<GhostTarget>();
             if (ghost != null)
             {
-                // O fantasma escapou recentemente.
-                if (ghost.HasEscaped && ghost.LateWindowActive)
+                if (ghost.HasEscaped)
                 {
-                    if (hitManager != null)
-                    {
-                        hitManager.RegisterTargetTooLate();
-                    }
-
+                    // Cada fuga penaliza no máximo uma martelada atrasada.
+                    if (ghost.TryRegisterLateHit())
+                        hitManager?.RegisterTargetTooLate();
                     return;
                 }
 
-                // O fantasma ainda está presente.
-                if (!ghost.HasEscaped)
+                // O randomizador é a fonte de verdade sobre qual fantasma está ativo.
+                if (moleRandomizer != null && moleRandomizer.TryRegisterHit(hit.collider))
                 {
-                    bool registered = ghost.TryHit();
-
-                    if (registered)
-                    {
-                        Debug.Log("ACERTOU O FANTASMA!");
-
-                        if (hitManager != null)
-                        {
-                            hitManager.RegisterHit();
-                        }
-                    }
+                    hitManager?.RegisterHit();
+                    Debug.Log("ACERTOU O FANTASMA!");
                 }
-
-                // Não registra erro de mira para esse clique.
                 return;
             }
         }
 
-        // Só chega aqui se não encontrou um fantasma reconhecido.
-        if (hitManager != null)
-        {
-            hitManager.RegisterMissedTarget();
-        }
+        hitManager?.RegisterMissedTarget();
     }
-
 }
