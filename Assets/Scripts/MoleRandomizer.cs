@@ -124,6 +124,7 @@ public class MoleRandomizer : MonoBehaviour
                 ghostTarget.MarkEscaped(lateClickWindow);
 
             SetVisualsVisible(false);
+            currentMole = null;
             yield return new WaitForSeconds(Mathf.Max(0.1f, lateClickWindow));
 
             if (selectedMole != null) selectedMole.SetActive(false);

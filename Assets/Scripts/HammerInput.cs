@@ -41,9 +41,7 @@ public class HammerInput : MonoBehaviour
             {
                 if (ghost.HasEscaped)
                 {
-                    // Cada fuga penaliza no máximo uma martelada atrasada.
-                    if (ghost.TryRegisterLateHit())
-                        hitManager?.RegisterTargetTooLate();
+                    hitManager?.RegisterTargetTooLate();
                     return;
                 }
 
@@ -52,8 +50,8 @@ public class HammerInput : MonoBehaviour
                 {
                     hitManager?.RegisterHit();
                     Debug.Log("ACERTOU O FANTASMA!");
+                    return;
                 }
-                return;
             }
         }
 

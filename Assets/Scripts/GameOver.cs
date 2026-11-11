@@ -33,4 +33,9 @@ public class GameOverMenu : MonoBehaviour
         Application.Quit();
 #endif
     }
+
+    public void OpenLeaderboard()
+    {
+        LeaderboardScreen.Show();
+    }
 }

@@ -1,17 +1,19 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     private const int PointsPerHit = 10;
 
     [Header("Configuração da partida")]
-    [SerializeField] private int maxErrors = 10;
+    [SerializeField] private int maxErrors = 3;
 
     [Header("Interface")]
     [SerializeField] private TMP_Text timerText;
     [SerializeField] private TMP_Text scoreText;
+    [SerializeField] private Graphic[] lifeHearts;
 
     [Header("Referências")]
     [SerializeField] private HitManager hitManager;
@@ -20,11 +22,13 @@ public class GameManager : MonoBehaviour
     private float elapsedTime;
     private bool gameOver;
     private int displayedHits = -1;
+    private int displayedLives = -1;
 
     private void Start()
     {
         elapsedTime = 0f;
         UpdateTimerDisplay();
+        UpdateLivesDisplay(0);
     }
 
     private void Update()
@@ -40,6 +44,8 @@ public class GameManager : MonoBehaviour
             int totalErrors =
                 hitManager.GetMissedTargets() +
                 hitManager.GetTargetsTooLate();
+
+            UpdateLivesDisplay(totalErrors);
 
             if (totalErrors >= maxErrors)
             {
@@ -80,11 +86,33 @@ public class GameManager : MonoBehaviour
 
         gameOver = true;
 
+        if (hitManager != null)
+            LocalLeaderboard.SubmitScore(hitManager.GetSuccessfulHits() * PointsPerHit);
+
         Debug.Log("GAME OVER: " + reason);
 
         if (moleRandomizer != null)
             moleRandomizer.StopSpawning();
 
         SceneManager.LoadScene("GameOver");
+    }
+
+    private void UpdateLivesDisplay(int totalErrors)
+    {
+        int lives = Mathf.Clamp(maxErrors - totalErrors, 0, maxErrors);
+        if (lives == displayedLives || lifeHearts == null)
+            return;
+
+        for (int i = 0; i < lifeHearts.Length; i++)
+        {
+            if (lifeHearts[i] != null)
+            {
+                lifeHearts[i].color = i < lives
+                    ? new Color(1f, 0.32f, 0.40f, 1f)
+                    : new Color(0.30f, 0.23f, 0.34f, 1f);
+            }
+        }
+
+        displayedLives = lives;
     }
 }

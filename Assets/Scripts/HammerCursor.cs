@@ -268,6 +268,10 @@ public class HammerCursor : MonoBehaviour
         float bestDist = float.MaxValue;
         foreach (var c in candidates)
         {
+            GhostTarget ghost = c.GetComponentInParent<GhostTarget>();
+            if (ghost == null || !ghost.IsHittable)
+                continue;
+
             float d = DistancePointToRay(ray, c.bounds.center);
             if (d < bestDist) { bestDist = d; best = c; }
         }
