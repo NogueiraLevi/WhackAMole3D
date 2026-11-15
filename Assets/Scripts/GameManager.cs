@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
         if (hits == displayedHits)
             return;
 
-        scoreText.text = $"PONTOS  {hits * PointsPerHit}";
+        scoreText.text = $"{hits * PointsPerHit:000000}";
         displayedHits = hits;
     }
 
