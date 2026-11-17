@@ -10643,9 +10643,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitManager
   audioSource: {fileID: 160315187}
-  missedTargetClip: {fileID: 8300000, guid: e0c35d30d4f40ab4b933b2ce2d55c2cc, type: 3}
-  targetTooLateClip: {fileID: 8300000, guid: 324897a57a0c48141a2a5e5132881d8f, type: 3}
-  hitClip: {fileID: 8300000, guid: 1d844a5015c3a944fa9d1ac1f6cd4aa0, type: 3}
+  missedTargetClip: {fileID: 8300000, guid: 0d16adbcbcd397b4ab085dd21f224fc9, type: 3}
+  targetTooLateClip: {fileID: 8300000, guid: d3069cf6efae1ba4982ff46df5b80a0e, type: 3}
+  hitClip: {fileID: 8300000, guid: 870d7926ce81cb24fa287fb6079abd68, type: 3}
 --- !u!4 &160315186
 Transform:
   m_ObjectHideFlags: 0
@@ -10673,8 +10673,8 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
-  m_Volume: 0.2
+  m_PlayOnAwake: 0
+  m_Volume: 0.05
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -53533,42 +53533,6 @@ MonoBehaviour:
   - {fileID: 2147000122}
   hitManager: {fileID: 160315185}
   moleRandomizer: {fileID: 1812350834}
---- !u!114 &2147200001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1479479122}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8649e0d306614f7d8d4c296d1b14ac10, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::PauseMenu
-  hudCanvas: {fileID: 1616556419}
-  gameplayControls:
-  - {fileID: 1479479123}
-  - {fileID: 419920726}
-  - {fileID: 2128203294}
---- !u!114 &2147300001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1479479122}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2b98388eb324c97bce1194c28c0a237, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::ArcadeHud
-  hudCanvas: {fileID: 1616556419}
-  timerText: {fileID: 302582852}
-  scoreText: {fileID: 2147000012}
-  lifeHearts:
-  - {fileID: 2147000102}
-  - {fileID: 2147000112}
-  - {fileID: 2147000122}
 --- !u!4 &1479479124
 Transform:
   m_ObjectHideFlags: 0
@@ -87645,6 +87609,42 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2147000120}
   m_CullTransparentMesh: 1
+--- !u!114 &2147200001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1479479122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8649e0d306614f7d8d4c296d1b14ac10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PauseMenu
+  hudCanvas: {fileID: 1616556419}
+  gameplayControls:
+  - {fileID: 1479479123}
+  - {fileID: 419920726}
+  - {fileID: 2128203294}
+--- !u!114 &2147300001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1479479122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2b98388eb324c97bce1194c28c0a237, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArcadeHud
+  hudCanvas: {fileID: 1616556419}
+  timerText: {fileID: 302582852}
+  scoreText: {fileID: 2147000012}
+  lifeHearts:
+  - {fileID: 2147000102}
+  - {fileID: 2147000112}
+  - {fileID: 2147000122}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
